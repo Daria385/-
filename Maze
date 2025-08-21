@@ -1,0 +1,152 @@
+from pygame import*
+class GameSprite(sprite.Sprite):
+    def __init__(self, player_image, player_x, player_y, player_speed, weigth, height):
+        super().__init__()
+        self.image = transform.scale(image.load(player_image), (weigth,height))
+        self.image_left = self.image
+        self.image_right = transform.flip(self.image, True, False)
+        self.speed = player_speed
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
+    # метод отрисовки спрайтов
+    def reset(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+
+class Player(GameSprite):
+    def update(self):
+        keys_pressed = key.get_pressed()
+        if keys_pressed[K_w] and self.rect.y > 0:
+            self.rect.y -= self.speed
+        if keys_pressed[K_s] and self.rect.y < 600:
+            self.rect.y += self.speed
+        if keys_pressed[K_a] and self.rect.x > 0:
+            self.rect.x -= self.speed
+            self.image = self.image_left
+        if keys_pressed[K_d] and self.rect.x < 1030:
+            self.rect.x += self.speed
+            self.image = self.image_right
+
+
+
+class Enemy(GameSprite):
+    direction = 'left'
+    def update(self, x1, x2):
+        if self.rect.x <= x1:
+            self.direction = 'right'
+        if self.rect.x >= x2:
+            self.direction = 'left'
+        if self.direction == 'left':
+            self.rect.x -= self.speed
+        if self.direction == 'right':
+            self.rect.x += self.speed
+
+
+
+class Wall(sprite.Sprite):
+    def __init__(self, color, wall_x, wall_y, wall_width, wall_height):
+        super().__init__()
+        self.color = color
+        self.width = wall_width
+        self.height = wall_height
+        self.image = Surface((self.width, self.height))
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+        self.rect.x = wall_x
+        self.rect.y = wall_y
+    def draw_wall(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+
+Wall_1 = Wall((107,60,8), 288, 13, 10, 400)
+Wall_2 = Wall((107,60,8), 446, 189, 10, 500)
+Wall_3 = Wall((107,60,8), 446, 189, 400, 10)
+Wall_4 = Wall((107,60,8), 845, 188, 10, 300)
+Wall_5 = Wall((107,60,8), 605, 344, 10, 250)
+Wall_6 = Wall((107,60,8), 605, 344, 250, 10)
+
+
+
+
+
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+weigth = 1100
+height = 700
+window = display.set_mode((weigth, height))
+display.set_caption('Лабиринт')
+background_cheese = transform.scale(image.load('background.jpg'), (weigth, height))
+mixer.init()
+mixer.music.load('pirates.ogg.mp3', )
+mixer.music.play()
+
+kick = mixer.Sound('kick.ogg')
+money = mixer.Sound('money.ogg')
+
+rackfor = Player('rat.png', 100, 100, 10, 75, 75)
+cat_sits = Enemy('cat sits.png', 800, 500, 5, 75, 75)
+cat_stays = Enemy('cat stays.png', 900, 100, 5, 75, 75)
+angry_cat = Enemy('angry cat.png', 200, 500, 5, 75, 75)
+cheese = Enemy('cheese.png', 769, 276, 0, 50, 50)
+
+font.init()
+font = font.Font(None, 70)
+win = font.render('YOU WIN!', True, (255, 215, 0))
+lose = font.render('YOU LOSE!', True, (255, 215, 0))
+
+finish = False
+clock = time.Clock()
+game = True
+while game:
+    for e in event.get():
+        if e.type == QUIT:
+            game = False
+
+        if e.type == MOUSEBUTTONDOWN and e.button == 1:
+            x, y = e.pos
+            print(f"Кордината x: {x}\nКордината y: {y}\n")
+    if finish != True:
+        window.blit(background_cheese,(0, 0))
+        rackfor.update()
+        cat_sits.update(600, 800)
+        cat_stays.update(700, 900)
+        angry_cat.update(50, 200)
+        rackfor.reset()
+        cat_sits.reset()
+        cat_stays.reset()
+        angry_cat.reset()
+        cheese.reset()
+        Wall_1.draw_wall()
+        Wall_2.draw_wall()
+        Wall_3.draw_wall()
+        Wall_4.draw_wall()
+        Wall_5.draw_wall()
+        Wall_6.draw_wall()
+    
+
+        if sprite.collide_rect(rackfor, cheese):
+            finish = True
+            money.play()
+            window.blit(win, (200, 200))
+        
+        if sprite.collide_rect(rackfor, angry_cat) or sprite.collide_rect(rackfor, Wall_1) or sprite.collide_rect(rackfor, cat_sits) or sprite.collide_rect(rackfor, Wall_2) or sprite.collide_rect(rackfor, cat_stays) or sprite.collide_rect(rackfor, Wall_3) or sprite.collide_rect(rackfor, Wall_4) or sprite.collide_rect(rackfor, Wall_5) or sprite.collide_rect(rackfor, Wall_6):
+            finish = True
+            kick.play()                                                                                                                                            
+            window.blit(lose, (200, 200))
+    display.update()
+    clock.tick(60)
+
+
+
